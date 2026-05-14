@@ -8,8 +8,8 @@ The simplest method is to place the Seoss33 database zip file at the root of the
 no zip files or more than one zip file then this detection fails and instead falls back to the `.env`. If the zip file is not at the root of 
 the project, then the absolute path to the file can be supplied through the [`.env`](#.env).
 
-# .env
-Create a .env file at the root of the project. The following example shows accepted parameters.
+# `.env`
+Create a `.env` file at the root of the project. The following example shows accepted parameters.
 ```
 COMPRESSED_DATABASE_PATH=path/to/databases
 ```
