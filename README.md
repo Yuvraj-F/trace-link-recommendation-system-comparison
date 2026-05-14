@@ -11,5 +11,5 @@ the project, then the absolute path to the file can be supplied through the [`.e
 # `.env`
 Create a `.env` file at the root of the project. The following example shows accepted parameters.
 ```
-COMPRESSED_DATABASE_PATH=path/to/databases
+COMPRESSED_DATABASE_PATH=absolute_path/to/database.zip
 ```
