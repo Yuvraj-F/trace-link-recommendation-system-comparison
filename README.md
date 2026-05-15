@@ -10,5 +10,5 @@ If the database is not at the root of the project, then the absolute path to the
 # .env
 Create a .env file in the root of the project. The following example shows accepted parameters.
 ```
-COMPRESSED_DATABASE_PATH=path/to/databases
+COMPRESSED_DATASET_PATH=path/to/databases
 ```
