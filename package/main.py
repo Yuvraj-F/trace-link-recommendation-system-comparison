@@ -6,47 +6,44 @@ from utils import *
 from db import *
 from query import *
 
-def setup_database():
-    "TODO: create database connection"
-
 def get_candidate_issues(model, commit):
-    "TODO: pass commit and database connection to model and return the result"
+    return model(commit)
 
-def compute_recall_k(commit, issues, k):
-    "TODO: fetch trace link for commit"
-    "TODO: check if issues contains the ground truth issue based on the trace link"
-    "TODO: compute and return recall value"
+
+def compute_recall_k(pred_issues, true_issues, k=5):
+    pred_issues = set(pred_issues[:k])
+    true_issues = set(true_issues)
+
+    count = 0
+    for issue in true_issues:
+        if issue in pred_issues:
+            count += 1
+        
+    recall = count/len(true_issues)
+    "TODO: Plot recall@k over multiple k values to get a curve showing how recall changes at different k's. Ideally it is just 1 but realistically probably looks like an increasing curve"
+    return recall
+
+def recall_curve():
+    pred = [1, 2, 34, 36, 865, 3, 4, 5, 34]
+    issues = [34, 865]
+    for k in range(1, 10):
+        print(f"Recall@{k}: {compute_recall_k(pred, issues, k=k)}")
 
 def get_ranked_issues(model, commit, issues):
     ranked_issues = model(commit, issues)
     return ranked_issues
 
-def compute_precision_k(commit, issues, k):
+def compute_precision_k(commit, issues, k=5):
     "TODO: fetch trace link for commit"
     "TODO: check if issues[:k] contains the ground truth issue based on the trace link"
     "TODO: compute and return recall value"
 
-if __name__ == "__main__":
-    DB_ROOT, DB_ZIP_PATH = init_config()
-    SEOSS_PATH = DB_ROOT / "seoss33"
-    
-    if not Path.exists(SEOSS_PATH):
-        unzip(DB_ZIP_PATH, SEOSS_PATH)
-
-    bz2_files = list(SEOSS_PATH.glob("*.bz2"))
-    for file in bz2_files:
-        decompress_bz2(file)
-
-    sqlite_files = list(SEOSS_PATH.glob("*.sqlite3"))
-    print(f"Found SEOSS 33 dataset with {len(sqlite_files)} project databases")
-    
-    seoss33 = SEOSS33(sqlite_files[0])
-
+def preprocess(seoss33: SEOSS33):
     # Gets issues and commits that have trace link
-    trace_links, keys = seoss33.query(TRACE_LINKS_QUERY)
+    trace_links, keys = seoss33.query(SELECT_ALL_TRACE_LINKS)
     print(f"Trace link keys: {keys}\n")
 
-    # Extract issue ids or all issues that are linked to merge commits
+    # Extract issue ids for all issues that are linked to merge commits
     count = 0
     issue_ids = []
     for link in trace_links:
@@ -73,5 +70,29 @@ if __name__ == "__main__":
     print(f"Merge commit count per issue: {issue_commits}")
 
     print("The issues that have only one linked commit and have one merge commit need to be investigated to see how that merge commit resolved the issue and wether they should be included in the experiment")
+
+def commit_counts(seoss33: SEOSS33):
+    trace_links, keys = seoss33.query(SELECT_ALL_TRACE_LINKS)
+    print(f"Trace link keys: {keys}\n")
+
+    commit_counts = {}
+    for link in trace_links:
+        commit_counts[link.commit_hash] = commit_counts.get(link.commit_hash, 0) + 1
+
+    for c, count in commit_counts.items():
+        if count > 5:
+            print(f"Issues per commit: {count} ({c})")
+
+if __name__ == "__main__":
+    seoss33 = init_db()
+
+    trace_links, keys = seoss33.query(SELECT_ALL_TRACE_LINKS)
+    print(f"Trace link keys: {keys}\n")
+
+    # Pipeline
+    get_candidate_issues(example_model, commit)
+    compute_recall_k(commit, issues, )
+    get_ranked_issues()
+    compute_precision_k()
 
     seoss33.close()
