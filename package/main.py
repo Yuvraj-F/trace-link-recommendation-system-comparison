@@ -1,17 +1,20 @@
 from pathlib import Path
 from llm import example_llm
-from similarity_model import example_model
+from similarity_model import *
 from config import *
 from utils import *
 from db import *
 from query import *
 
-def get_candidate_issues(model, commit):
-    return model(commit)
+def get_candidate_issues(model: SimModel, commit):
+    if model.device == 'cuda':
+        "TODO: batch queries"
+
+    return model.similarity(commit)
 
 
-def compute_recall_k(pred_issues, true_issues, k=5):
-    pred_issues = set(pred_issues[:k])
+def compute_recall_k(pred_issues, true_issues, k=None):
+    pred_issues = set(pred_issues[:k]) if k != None else set(pred_issues)
     true_issues = set(true_issues)
 
     count = 0
@@ -86,13 +89,41 @@ def commit_counts(seoss33: SEOSS33):
 if __name__ == "__main__":
     seoss33 = init_db()
 
+
+    # Test setup
+    # Extract trace links
     trace_links, keys = seoss33.query(SELECT_ALL_TRACE_LINKS)
     print(f"Trace link keys: {keys}\n")
 
+    # Create test units - A test unit consists of a prompt commit and the ground truth issues
+    tests = set()
+
+    commits = {}
+    for link in trace_links:
+        if commits.get(link.commit_hash, None) == None:
+            commits[link.commit_hash] = (link.message, {link.issue_id: (link.summary or "") + ". " + (link.description or "")})   
+        else:
+            if commits[link.commit_hash][1].get(link.issue_id) != None:
+                print("BRUH") 
+            commits[link.commit_hash][1][link.issue_id] = (link.summary or "") + ". " + (link.description or "")
+    print(len(commits))
+
     # Pipeline
-    get_candidate_issues(example_model, commit)
-    compute_recall_k(commit, issues, )
-    get_ranked_issues()
-    compute_precision_k()
+    # Load similarity model
+    minilm_l6_v2 = SimModel('sentence-transformers/all-MiniLM-L6-v2', seoss33)
+    print(f"Using {minilm_l6_v2.model.device}")
+
+    # Iterate over tests. Currntly only goes up to calculating recall
+    recalls = []
+    for hash, data in commits.items():
+        # print(f"Truth: {list(data[1].values())}")
+        candidate_issues = get_candidate_issues(minilm_l6_v2, data[0])
+        recall = compute_recall_k(candidate_issues, list(data[1].values()),)
+        print(f"Testing...{min(len(recalls)/len(commits)*100, 100):.2f}%\r", end="")
+        recalls.append(recall)
+
+    print(f"Recall: {sum(recalls)/len(recalls)}")
+    # get_ranked_issues()
+    # compute_precision_k()
 
     seoss33.close()
