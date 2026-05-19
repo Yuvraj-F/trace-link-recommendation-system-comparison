@@ -1,6 +1,7 @@
 # custom
 *.zip
 /seoss33
+/hf_cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
