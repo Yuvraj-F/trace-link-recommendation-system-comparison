@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # Pipeline
     # Load similarity model
     minilm_l6_v2 = SimModel('sentence-transformers/all-MiniLM-L6-v2', seoss33)
-    print(f"Using {minilm_l6_v2.model.device}")
+    print(f"Using {minilm_l6_v2.device}")
 
     # Iterate over tests. Currntly only goes up to calculating recall
     recalls = []

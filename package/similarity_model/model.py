@@ -10,8 +10,8 @@ class SimModel:
     are needed, this implementation would need to be updated
     """
     def __init__(self, model, db: SEOSS33):
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', device=device)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = SentenceTransformer(model, device=self.device)
         self.db = db
         self.issues_str, self.issue_embeddings = self._get_issues()
         
