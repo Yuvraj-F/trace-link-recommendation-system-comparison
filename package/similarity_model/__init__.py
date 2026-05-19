@@ -1,1 +1,1 @@
-from .example import example_model
+from .model import SimModel
