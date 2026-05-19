@@ -1,6 +1,9 @@
 # Trace Link Recommendation System Comparison
 A package that can evaluate combinations of retireval and ranking techniques for issue-commit trace link recommendation
 
+# Dependencies
+`pip install sentence-transformers`. refer to [sbert.net](https://sbert.net/index.html).
+
 # SEOSS 33 Dataset
 This package relies on the [SEOSS 33 dataset](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/PDDZ4Q).
 
