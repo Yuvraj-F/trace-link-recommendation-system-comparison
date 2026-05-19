@@ -1,7 +1,9 @@
 from pathlib import Path
+import os
 
 ROOT_DIR = Path(__file__).parent.parent
 PACKAGE_DIR = ROOT_DIR / "package"
+CACHE_DIR = ROOT_DIR / "hf_cache"
 
 def _load_from_env():
     if not Path.exists(ROOT_DIR / ".env"):
@@ -28,9 +30,18 @@ def _load_dataset_path():
         print(f"Loading path from .env")
         return _load_from_env()
 
+def _setup_local_cache():
+    os.environ["HF_HOME"] = str(CACHE_DIR)
+    os.environ["HUGGINGFACE_HUB_CACHE"] = str(CACHE_DIR)
+    os.environ["TRANSFORMERS_CACHE"] = str(CACHE_DIR)
+    os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(CACHE_DIR)
+
+    CACHE_DIR.mkdir(exist_ok=True, parents=True)
+
 
 def init_config():
     print(f"Loading configuration...")
+    _setup_local_cache()
     return _load_dataset_path()
 
 __all__ = ["init_config", "ROOT_DIR", "PACKAGE_DIR"]
