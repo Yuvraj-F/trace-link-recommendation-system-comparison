@@ -17,6 +17,6 @@ if [ ! -f "$ENV_DIR/bin/python" ]; then
     "$ENV_DIR/bin/python" -m pip install --upgrade pip
 fi
 
-"$PYTHON" -m pip install -r requirements.txt
+"$PYTHON" -m pip install -q -r requirements.txt
 
 "$PYTHON" "$MAIN"

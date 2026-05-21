@@ -9,7 +9,7 @@ def decompress_bz2(in_path, out_path=None, keep=False):
     if out_path is None:
         out_path = in_path.with_suffix("")
 
-    print(f"Decompressing {in_path} into {out_path}")
+    print(f"Decompressing {in_path.parent.name}/{in_path.name} → {out_path.parent.name}/")
     with bz2.open(in_path, "rb") as src, open(out_path, "wb") as dst:
         shutil.copyfileobj(src, dst)
 
@@ -17,7 +17,7 @@ def decompress_bz2(in_path, out_path=None, keep=False):
         in_path.unlink()
     
 def unzip(in_path, out_path):
-    print(f"Extracting {in_path} into {out_path}")
+    print(f"Extracting {in_path.parent.name}/{in_path.name} → {out_path.parent.name}/")
     with zipfile.ZipFile(in_path, "r") as zip_ref:
         zip_ref.extractall(out_path)
 
