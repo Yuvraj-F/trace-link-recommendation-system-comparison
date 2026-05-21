@@ -3,7 +3,7 @@ import os
 
 ROOT_DIR = Path(__file__).parent.parent
 PACKAGE_DIR = ROOT_DIR / "package"
-CACHE_DIR = ROOT_DIR / "hf_cache"
+CACHE_DIR = ROOT_DIR / ".hf_cache"
 
 def _load_from_env():
     if not Path.exists(ROOT_DIR / ".env"):
