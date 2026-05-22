@@ -15,6 +15,6 @@ if not exist "%ENV_DIR%\Scripts\python.exe" (
     "%ENV_DIR%\Scripts\python" -m pip install --upgrade pip
 )
 
-"%ENV_DIR%\Scripts\python" -m pip install -r requirements.txt
+"%ENV_DIR%\Scripts\python" -m pip install -q -r requirements.txt
 
 "%PYTHON%" "%MAIN%"
