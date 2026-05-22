@@ -1,12 +1,12 @@
 from pathlib import Path
 from llm import example_llm
-from similarity_model import *
+from similarity_model import RETRIEVER_NAMES, Retriever, build_retriever
 from config import *
 from utils import *
 from db import *
 from query import *
 
-def get_candidate_issues(model: SimModel, commit: Commit | str) -> list[Issue]:
+def get_candidate_issues(model: Retriever, commit: Commit | str) -> list[Issue]:
     "TODO: batch queries"
     return model.get_relevant_issues(commit.message if isinstance(commit, Commit) else commit)
 
@@ -84,24 +84,44 @@ def commit_counts(seoss33: SEOSS33):
         if count > 5:
             print(f"Issues per commit: {count} ({c})")
 
-if __name__ == "__main__":
-    seoss33 = init_db()
+def evaluate_retriever(retriever: Retriever, seoss33: SEOSS33) -> float:
+    """
+    Average per-commit recall over all trace links in the loaded project DB.
 
-    # Pipeline
-    # Load similarity model
-    minilm_l6_v2 = SimModel('sentence-transformers/all-MiniLM-L6-v2', seoss33.get_issues())
-    print(f"Loaded minilm_l6_v2 Successfully | Device: {minilm_l6_v2.device}")
-
-    # Iterate over tests. Currntly only goes up to calculating recall
+    @param retriever: Configured first-stage model (issues indexed at build time).
+    @param seoss33: Open SEOSS33 dataset handle.
+    @return: Mean of compute_recall_k scores across commits.
+    """
     recalls = []
-    commits_count = len(seoss33.get_commits())
-    for commit, issues in seoss33.get_trace_links():
-        candidate_issues = get_candidate_issues(minilm_l6_v2, commit.message)
+    trace_links = list(seoss33.get_trace_links())
+    total = len(trace_links)
+    for i, (commit, issues) in enumerate(trace_links, start=1):
+        candidate_issues = get_candidate_issues(retriever, commit)
         recall = compute_recall_k(candidate_issues, issues)
-        print(f"Testing...{min(len(recalls)/commits_count*100, 100):.2f}%\r", end="")
         recalls.append(recall)
+        print(f"Testing...{i / total * 100:.2f}%\r", end="")
+    print()
+    return sum(recalls) / len(recalls) if recalls else 0.0
 
-    print(f"Recall: {sum(recalls)/len(recalls):.4f}")
+
+if __name__ == "__main__":
+    # Compare all four retrieval backends on the same issue corpus and trace links.
+    seoss33 = init_db()
+    issues = seoss33.get_issues()
+
+    print(f"Evaluating {len(RETRIEVER_NAMES)} retrieval techniques on {len(issues)} issues\n")
+
+    for name in RETRIEVER_NAMES:
+        print(f"--- {name} ---")
+        print("Building retriever (download/load/encode as needed)...")
+        retriever = build_retriever(name, issues)
+        if hasattr(retriever, "device"):
+            print(f"Ready | Device: {retriever.device}")
+        else:
+            print("Ready")
+        mean_recall = evaluate_retriever(retriever, seoss33)
+        print(f"Mean recall: {mean_recall:.4f}\n")
+
     # get_ranked_issues()
     # compute_precision_k()
 

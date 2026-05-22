@@ -1,2 +1,5 @@
 # This is required for managing and runnning models available on Hugging Face
 sentence_transformers
+scikit-learn
+gensim
+numpy
