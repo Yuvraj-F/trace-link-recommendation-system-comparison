@@ -22,7 +22,9 @@ class SbertRetriever(Retriever):
     """
     Contextual sentence embeddings (Siamese fine-tuned BERT family).
 
-    Strong semantic similarity; slower and heavier than lexical/static baselines.
+    Uses Sentence Transformers encode_query (commits) and encode_document (issues)
+    so asymmetric retrieval models apply the correct prompts. Ranking still uses
+    shared cosine similarity in Retriever.get_relevant_issues.
     """
 
     def __init__(self, model_name: str = DEFAULT_SBERT_MODEL, issues: list[Issue] | None = None):
@@ -43,13 +45,13 @@ class SbertRetriever(Retriever):
 
     def _encode_documents(self) -> np.ndarray:
         return np.asarray(
-            self.model.encode(self.issue_texts, convert_to_numpy=True),
+            self.model.encode_document(self.issue_texts, convert_to_numpy=True),
             dtype=np.float64,
         )
 
     def _encode_query(self, text: str) -> np.ndarray:
         return np.asarray(
-            self.model.encode(text, convert_to_numpy=True),
+            self.model.encode_query(text, convert_to_numpy=True),
             dtype=np.float64,
         )
 
@@ -61,6 +63,6 @@ class SbertRetriever(Retriever):
         @return: Matrix of shape (len(queries), embedding_dim).
         """
         return np.asarray(
-            self.model.encode(queries, convert_to_numpy=True),
+            self.model.encode_query(queries, convert_to_numpy=True),
             dtype=np.float64,
         )
