@@ -24,11 +24,14 @@ def compute_recall_k(pred_issues: list[Issue], true_issues: list[Issue], k=None)
     "TODO: Plot recall@k over multiple k values to get a curve showing how recall changes at different k's. Ideally it is just 1 but realistically probably looks like an increasing curve"
     return recall
 
-def recall_curve():
-    pred = [1, 2, 34, 36, 865, 3, 4, 5, 34]
-    issues = [34, 865]
-    for k in range(1, 10):
-        print(f"Recall@{k}: {compute_recall_k(pred, issues, k=k)}")
+def compute_recall_curve(pred_issues: list[Issue], true_issues: list[Issue], ks=None) -> float:
+    if ks == None:
+        ks = [1] + list(range(5, 101, 5))
+
+    recalls = {}
+    for k in ks:
+        recalls[k] = compute_recall_k(pred_issues, true_issues, k=k)
+    return recalls
 
 def get_ranked_issues(model, commit, issues):
     ranked_issues = model(commit, issues)
@@ -84,6 +87,34 @@ def commit_counts(seoss33: SEOSS33):
         if count > 5:
             print(f"Issues per commit: {count} ({c})")
 
+def eval():
+    # Iterate over tests. Currntly only goes up to calculating recall
+    ks = [1] + list(range(5, 101, 5))
+    recalls_per_commit = []
+    commits_count = len(seoss33.get_commits())
+    count = 0
+    for commit, issues in seoss33.get_trace_links():
+        candidate_issues = get_candidate_issues(minilm_l6_v2, commit.message)
+        recall_curve = compute_recall_curve(candidate_issues, issues, ks=ks)
+        recalls_per_commit.append(recall_curve)
+        print(f"Testing...{min(len(recalls_per_commit)/commits_count*100, 100):.2f}%\r", end="")
+        count += 1
+        
+
+    recalls_k = {}
+    for recall_curve in recalls_per_commit:
+        for k, recall in recall_curve.items():
+            recalls_k.setdefault(k, []).append(recall)
+    
+    average_recalls_k = []
+    for k, recalls in recalls_k.items():
+        average_recall = sum(recalls)/len(recalls)
+        average_recalls_k.append(average_recall)
+        print(f"Recall@{k}: {average_recall:.4f}", end=" | ")
+
+    print(f"\nRecall: {sum(average_recalls_k)/len(average_recalls_k):.4f}")
+
+
 if __name__ == "__main__":
     seoss33 = init_db()
 
@@ -92,17 +123,5 @@ if __name__ == "__main__":
     minilm_l6_v2 = SimModel('sentence-transformers/all-MiniLM-L6-v2', seoss33.get_issues())
     print(f"Loaded minilm_l6_v2 Successfully | Device: {minilm_l6_v2.device}")
 
-    # Iterate over tests. Currntly only goes up to calculating recall
-    recalls = []
-    commits_count = len(seoss33.get_commits())
-    for commit, issues in seoss33.get_trace_links():
-        candidate_issues = get_candidate_issues(minilm_l6_v2, commit.message)
-        recall = compute_recall_k(candidate_issues, issues)
-        print(f"Testing...{min(len(recalls)/commits_count*100, 100):.2f}%\r", end="")
-        recalls.append(recall)
-
-    print(f"Recall: {sum(recalls)/len(recalls):.4f}")
-    # get_ranked_issues()
-    # compute_precision_k()
-
+    
     seoss33.close()
