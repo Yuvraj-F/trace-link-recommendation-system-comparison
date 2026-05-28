@@ -122,18 +122,33 @@ def evaluate_retriever(retriever: Retriever, seoss33: SEOSS33) -> float:
 
     @param retriever: Configured first-stage model (issues indexed at build time).
     @param seoss33: Open SEOSS33 dataset handle.
-    @return: Mean of compute_recall_k scores across commits.
+    @return: Mean recall over entire test set.
     """
-    recalls = []
+
+    recalls_per_commit = []
     trace_links = list(seoss33.get_trace_links())
     total = len(trace_links)
     for i, (commit, issues) in enumerate(trace_links, start=1):
         candidate_issues = get_candidate_issues(retriever, commit)
-        recall = compute_recall_k(candidate_issues, issues)
-        recalls.append(recall)
+        recall_curve = compute_recall_curve(candidate_issues, issues)
+        recalls_per_commit.append(recall_curve)
         print(f"Testing...{i / total * 100:.2f}%\r", end="")
     print()
-    return sum(recalls) / len(recalls) if recalls else 0.0
+
+    recalls_k = {} #TODO: print recall curve using these
+    for recall_curve in recalls_per_commit:
+        for k, recall in recall_curve.items():
+            recalls_k.setdefault(k, []).append(recall)
+    
+    average_recalls_k = []
+    for k, recalls in recalls_k.items():
+        average_recall = sum(recalls)/len(recalls)
+        average_recalls_k.append(average_recall)
+        print(f"Recall@{k}: {average_recall:.4f}", end=" | ")
+
+    print(f"\nRecall: {sum(average_recalls_k)/len(average_recalls_k):.4f}")
+
+    return sum(average_recalls_k)/len(average_recalls_k) if recalls else 0.0
 
 
 if __name__ == "__main__":
