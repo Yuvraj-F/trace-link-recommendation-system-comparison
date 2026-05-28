@@ -56,11 +56,12 @@ class SEOSS33:
     Attributes:
         definition: the schema of the SEOSS33 dataset in the form of a list of table names that are part of the schema
     """
-    def __init__(self, db):
+    def __init__(self, db_files):
         """
-        db: An absolute path to one of the .sqlite3 files provided by the SEOSS 33 database 
+        db: A list of paths to .sqlite3 files provided by the SEOSS 33 database 
         """
-        self.conn = sqlite3.connect(db)
+        self.name = Path(db_files).stem
+        self.conn = sqlite3.connect(db_files)
         self.conn.row_factory = DotRow
         self.cursor = self.conn.cursor()
         self.definition = self._generate_definition()
@@ -133,4 +134,4 @@ def init_db():
     sqlite_files = list(SEOSS_PATH.glob("*.sqlite3"))
     print(f"SEOSS 33 dataset loaded successfully: Detected {len(sqlite_files)} project databases")
     
-    return SEOSS33(sqlite_files[0])
+    return [SEOSS33(project_db) for project_db in sqlite_files]

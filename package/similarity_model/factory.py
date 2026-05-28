@@ -36,7 +36,7 @@ def build_retriever(name: str, issues: list[Issue], **kwargs) -> Retriever:
         return Word2VecRetriever(
             issues,
             model_name=kwargs.get("model", DEFAULT_WORD2VEC_MODEL),
-            train_on_corpus=kwargs.get("train_on_corpus", False),
+            train_on_corpus=kwargs.get("train_on_corpus", True),
         )
     if key == "fasttext":
         return FastTextRetriever(
