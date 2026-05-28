@@ -192,7 +192,7 @@ if __name__ == "__main__":
         
         recalls_across_projects[project.name] = retriever_recalls
         precisions_across_projects[project.name] = retriever_precisions
-        plot_projects(recalls_across_projects, precisions_across_projects)
+    plot_projects(recalls_across_projects, precisions_across_projects)
 
     # get_ranked_issues()
     # compute_precision_k()
