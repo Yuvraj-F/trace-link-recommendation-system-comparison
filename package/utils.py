@@ -1,6 +1,7 @@
 import bz2
 import shutil
 import zipfile
+import matplotlib.pyplot as plt
 
 compressed_file = "db.sqlite3.bz2"
 output_file = "db.sqlite3"
@@ -23,3 +24,30 @@ def unzip(in_path, out_path):
 
 def remove_issue_id_from_commit(issue_id: str, commit: str):
     return commit.replace(issue_id, "")
+
+def plot(ax, x, label=""):
+    ax.plot(range(len(x)), x, label=label)
+    return ax
+
+def plot_retrievers(axis, retrievers:dict, title="", xlabel="", ylabel=""):
+    for retriever, metric in retrievers.items():
+        plot(axis, metric.values(), label=retriever)
+    axis.legend()
+    axis.set_xlabel(xlabel)
+    axis.set_ylabel(ylabel)
+    axis.set_title(title)
+    return axis
+
+def plot_projects(recalls: dict, precisions: dict):
+    for project in recalls.keys():
+        fig, axs = plt.subplots(6, 6, figsize=(18, 18))
+        plot_retrievers(axs[0], recalls[project], title=project, xlabel="K", ylabel="Recall")
+        plot_retrievers(axs[1], precisions[project], title=project, xlabel="K", ylabel="Precision")
+        plt.show()
+
+    for i, (project, _) in enumerate(recalls.items()):
+        row = i // 6
+        col = i % 6
+        plot_retrievers(axs[row][col], recalls[project], title=project, xlabel="K", ylabel="Recall")
+
+    plt.show()
