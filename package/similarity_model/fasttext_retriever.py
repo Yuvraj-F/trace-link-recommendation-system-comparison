@@ -70,7 +70,7 @@ class FastTextRetriever(Retriever):
         self,
         issues: list[Issue],
         model_name: str = DEFAULT_FASTTEXT_MODEL,
-        train_on_corpus: bool = False,
+        train_on_corpus: bool = True,
     ):
         """
         @param issues: Candidate issues to index.

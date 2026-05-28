@@ -42,7 +42,7 @@ def build_retriever(name: str, issues: list[Issue], **kwargs) -> Retriever:
         return FastTextRetriever(
             issues,
             model_name=kwargs.get("model", DEFAULT_FASTTEXT_MODEL),
-            train_on_corpus=kwargs.get("train_on_corpus", False),
+            train_on_corpus=kwargs.get("train_on_corpus", True),
         )
     if key == "sbert":
         return SbertRetriever(
