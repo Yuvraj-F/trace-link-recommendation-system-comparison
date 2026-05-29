@@ -2,6 +2,7 @@
 A package that can evaluate combinations of retireval and ranking techniques for issue-commit trace link recommendation
 
 # How to run
+- Some dependecies are only compatible with python 3.12. Please ensure you are using a compatible python version.
 - Refer to [dataset instructions](#seoss-33-dataset).
 - Execute `./run.bat` on Windows or `./run.sh` on Linux/MacOS. Alternatively, if you have a custom system-wide python environment that would be difficult to reinstall in the virtual environment refer to [Python Environment](#python-environment-and-dependencies).
 
