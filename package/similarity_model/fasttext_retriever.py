@@ -21,6 +21,11 @@ def _mean_fasttext_vector(tokens: list[str], kv, dim: int) -> np.ndarray:
     @param dim: Vector dimensionality.
     @return: Document vector, or zeros if no tokens.
     """
+
+    if not tokens:
+        return np.zeros(dim, dtype=np.float64)
+    return np.asarray(kv.get_mean_vector(tokens), dtype=np.float64)
+
     if not tokens:
         return np.zeros(dim, dtype=np.float64)
     if hasattr(kv, "get_mean_vector"):
@@ -108,7 +113,14 @@ class FastTextRetriever(Retriever):
             [_mean_fasttext_vector(tokenize(text), self.kv, self.dim) for text in self.issue_texts]
         )
         print("Issue encoding complete.")
+
         return matrix
 
     def _encode_query(self, text: str) -> np.ndarray:
         return _mean_fasttext_vector(tokenize(text), self.kv, self.dim)
+    
+    def batch_encode_queries(self, queries):
+        matrix = np.vstack(
+            [_mean_fasttext_vector(tokenize(text), self.kv, self.dim) for text in self.issue_texts]
+        )
+        return matrix

@@ -41,26 +41,17 @@ class SbertRetriever(Retriever):
         """@return: True if the model is running on a CUDA device."""
         return self.device == "cuda"
 
-    def _encode_documents(self) -> np.ndarray:
-        return np.asarray(
-            self.model.encode(self.issue_texts, convert_to_numpy=True),
-            dtype=np.float64,
-        )
+    def _encode_documents(self):
+        return self.model.encode(self.issue_texts, convert_to_numpy=True)
+  
+    def _encode_query(self, text: str):
+        return self.model.encode(text, convert_to_numpy=True)
 
-    def _encode_query(self, text: str) -> np.ndarray:
-        return np.asarray(
-            self.model.encode(text, convert_to_numpy=True),
-            dtype=np.float64,
-        )
-
-    def batch_encode_queries(self, queries: list[str]) -> np.ndarray:
+    def batch_encode_queries(self, queries: list[str]):
         """
         Encode multiple commit messages in one forward pass.
 
         @param queries: List of commit message strings.
         @return: Matrix of shape (len(queries), embedding_dim).
         """
-        return np.asarray(
-            self.model.encode(queries, convert_to_numpy=True),
-            dtype=np.float64,
-        )
+        return self.model.encode(queries, convert_to_numpy=True)

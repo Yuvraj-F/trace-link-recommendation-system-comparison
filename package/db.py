@@ -22,7 +22,7 @@ class Issue:
         return hash(self.id)
     
     def __repr__(self):
-        return f"{self.id}: {self.text}"
+        return self.to_text()
 
 class Commit:
     def __init__(self, hash, message):
@@ -111,7 +111,7 @@ class SEOSS33:
     def get_commits(self):
         return list(self.commits.values())
     
-    def get_trace_links(self) -> dict[Commit, Issue]:
+    def get_trace_links(self) -> dict[Commit, set[Issue]]:
         return self.links.items()
     
     def close(self):

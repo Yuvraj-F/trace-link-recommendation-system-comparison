@@ -21,10 +21,12 @@ def _mean_word_vector(tokens: list[str], kv, dim: int) -> np.ndarray:
     @param dim: Vector dimensionality.
     @return: Mean word vector, or zeros if no in-vocab tokens.
     """
-    vectors = [kv[word] for word in tokens if word in kv]
-    if not vectors:
-        return np.zeros(dim, dtype=np.float64)
-    return np.mean(vectors, axis=0)
+    # vectors = [kv[word] for word in tokens if word in kv]
+    # if not vectors:
+    #     return np.zeros(dim, dtype=np.float64)
+    # return np.mean(vectors, axis=0)
+    if hasattr(kv, "get_mean_vector"):
+            return kv.get_mean_vector(tokens)
 
 
 def _train_word2vec(texts: list[str]):
@@ -92,9 +94,18 @@ class Word2VecRetriever(Retriever):
             return _train_word2vec([issue.to_text() for issue in issues])
 
     def _encode_documents(self) -> np.ndarray:
-        return np.vstack(
-            [_mean_word_vector(tokenize(text), self.kv, self.dim) for text in self.issue_texts]
-        )
+        return np.vstack([
+        self.kv.get_mean_vector(tokenize(text))
+        for text in self.issue_texts
+    ])
 
     def _encode_query(self, text: str) -> np.ndarray:
         return _mean_word_vector(tokenize(text), self.kv, self.dim)
+    
+    def batch_encode_queries(self, queries: list[str]):
+        tokenised = [tokenize(t) for t in queries]
+
+        return np.vstack([
+            self.kv.get_mean_vector(tokens)
+            for tokens in tokenised
+        ])

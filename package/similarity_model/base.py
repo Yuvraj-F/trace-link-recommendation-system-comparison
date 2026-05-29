@@ -24,9 +24,12 @@ def tokenize(text: str) -> list[str]:
     return re.findall(r"\w+", text.lower())
 
 
+def _to_dense(x):
+    return x.toarray() if hasattr(x, "toarray") else x
+
 def rank_by_similarity(
-    query_vec: np.ndarray,
-    doc_matrix: np.ndarray,
+    query_vec,
+    doc_matrix,
     issues: list[Issue],
     threshold: float = 0,
 ) -> list[Issue]:
@@ -39,20 +42,24 @@ def rank_by_similarity(
     @param threshold: Minimum similarity to include an issue (default 0).
     @return: Issues sorted by descending similarity.
     """
-    query = np.asarray(query_vec, dtype=np.float64).reshape(1, -1)
-    docs = np.asarray(doc_matrix, dtype=np.float64)
+    query_vec = _to_dense(query_vec)
+    doc_matrix = _to_dense(doc_matrix)
 
-    if docs.ndim == 1:
-        docs = docs.reshape(1, -1)
+    similarities = cosine_similarity(query_vec, doc_matrix)
 
-    similarities = cosine_similarity(query, docs)[0]
-    ranked = [
-        (issues[i], float(similarities[i]))
-        for i in range(len(issues))
-        if similarities[i] >= threshold
-    ]
-    ranked.sort(key=lambda pair: pair[1], reverse=True)
-    return [issue for issue, _ in ranked]
+    if similarities.ndim == 1:
+        similarities = similarities.reshape(1, -1)
+
+    results = []
+    for row in similarities:
+        ranked = sorted(
+            [(issues[i], float(row[i])) for i in range(len(issues)) if row[i] >= threshold],
+            key=lambda x: x[1],
+            reverse=True
+        )
+        results.append([i for i, _ in ranked])
+
+    return results
 
 
 class Retriever(ABC):
@@ -91,15 +98,23 @@ class Retriever(ABC):
         """
         pass
 
-    def get_relevant_issues(self, commit: str, threshold: float = 0) -> list[Issue]:
+    def batch_encode_queries(self, queries: list[str]):
+        pass
+
+    def get_relevant_issues(self, commit: str | list[str], threshold: float = 0) -> list[Issue]:
         """
-        Return issues ranked by similarity to the commit message.
+        Return issues ranked by similarity to the commit message. It can accept a list of commits for batched 
+        processing as well.
 
         @param commit: Commit message text (not the Commit object).
         @param threshold: Minimum cosine similarity to retain a candidate.
         @return: Ranked list of issues, highest similarity first.
         """
-        query_vec = self._encode_query(commit)
+        if isinstance(commit, str):
+            query_vec = self._encode_query(commit)
+        else:
+            query_vec = self.batch_encode_queries(commit)
+
         return rank_by_similarity(
             query_vec, self._encoded_documents, self.issues, threshold
         )

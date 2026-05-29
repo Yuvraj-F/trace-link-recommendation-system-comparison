@@ -34,8 +34,11 @@ class TfidfRetriever(Retriever):
     def _encode_documents(self) -> np.ndarray:
         """Fit vectorizer on issue texts and return dense TF-IDF rows."""
         self.vectorizer.fit(self.issue_texts)
-        return self.vectorizer.transform(self.issue_texts).toarray()
+        return self.vectorizer.transform(self.issue_texts)
 
     def _encode_query(self, text: str) -> np.ndarray:
         """@param text: Commit message. @return: TF-IDF vector for the query."""
-        return self.vectorizer.transform([text]).toarray()[0]
+        return self.vectorizer.transform([text])
+    
+    def batch_encode_queries(self, queries: list[str]):
+        return self.vectorizer.transform(queries)
