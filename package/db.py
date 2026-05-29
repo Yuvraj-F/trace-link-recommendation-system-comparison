@@ -134,4 +134,4 @@ def init_db():
     sqlite_files = list(SEOSS_PATH.glob("*.sqlite3"))
     print(f"SEOSS 33 dataset loaded successfully: Detected {len(sqlite_files)} project databases")
     
-    return [SEOSS33(project_db) for project_db in sqlite_files]
+    return sqlite_files

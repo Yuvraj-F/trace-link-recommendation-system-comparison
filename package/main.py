@@ -96,15 +96,16 @@ def evaluate_retriever(retriever: Retriever, seoss33: SEOSS33) -> float:
 
 if __name__ == "__main__":
     # Compare all four retrieval backends on the same issue corpus and trace links.
-    seoss33 = init_db()
+    seoss33_files = init_db()
 
     recalls_across_projects = {}
     precisions_across_projects = {}
-    for project in seoss33[8:]:
-        issues = project.get_issues()
+    for project_file in seoss33_files:
+        db = SEOSS33(project_file)
+        issues = db.get_issues()
 
         print("\n------------------------------------------------------")
-        print(f"Project {project.name}: {len(issues)} trace links")
+        print(f"Project {db.name}: {len(issues)} trace links")
         print("------------------------------------------------------")
 
         retriever_recalls = {}
@@ -117,16 +118,15 @@ if __name__ == "__main__":
                 print(f"Ready | Device: {retriever.device}")
             else:
                 print("Ready")
-            average_recalls, average_precisions = evaluate_retriever(retriever, project)
+            average_recalls, average_precisions = evaluate_retriever(retriever, db)
             mean_recall = sum(average_recalls.values())/len(average_recalls.values())
             retriever_recalls[name] = average_recalls
             retriever_precisions[name] = average_precisions
         
-        recalls_across_projects[project.name] = retriever_recalls
-        precisions_across_projects[project.name] = retriever_precisions
+        db.close()
+        
+        recalls_across_projects[db.name] = retriever_recalls
+        precisions_across_projects[db.name] = retriever_precisions
 
     save_recalls_data(recalls_across_projects)
     save_precision_data(precisions_across_projects)
-
-    for project in seoss33:
-        project.close()
