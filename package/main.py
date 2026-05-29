@@ -66,8 +66,6 @@ def evaluate_retriever(retriever: Retriever, seoss33: SEOSS33) -> float:
         recalls_per_commit.append(recall_curve)
         precisions_per_commit.append(precision_curve)
 
-    print()
-
     recalls_k = {} 
     precisions_k = {}
     for recall_curve, precision_curve in zip(recalls_per_commit, precisions_per_commit):
@@ -102,17 +100,17 @@ if __name__ == "__main__":
 
     recalls_across_projects = {}
     precisions_across_projects = {}
-    for project in seoss33:
+    for project in seoss33[8:]:
         issues = project.get_issues()
 
-        print("------------------------------------------------------")
-        print(f"\nProject {project.name}: {len(issues)} trace links\n")
+        print("\n------------------------------------------------------")
+        print(f"Project {project.name}: {len(issues)} trace links")
         print("------------------------------------------------------")
 
         retriever_recalls = {}
         retriever_precisions = {}
         for name in RETRIEVER_NAMES:
-            print(f"--- {name} ---")
+            print(f"\n--- {name} ---")
             print("Building retriever (download/load/encode as needed)...")
             retriever = build_retriever(name, issues)
             if hasattr(retriever, "device"):
