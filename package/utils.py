@@ -2,9 +2,13 @@ import bz2
 import shutil
 import zipfile
 import matplotlib.pyplot as plt
+from pathlib import Path
+import json
+import re
 
-compressed_file = "db.sqlite3.bz2"
-output_file = "db.sqlite3"
+from config import DATA_DIR
+RECALL_DATA_PREFIX = "recall_data"
+PRECISION_DATA_PREFIX = "precision_data"
 
 def decompress_bz2(in_path, out_path=None, keep=False):
     if out_path is None:
@@ -22,8 +26,55 @@ def unzip(in_path, out_path):
     with zipfile.ZipFile(in_path, "r") as zip_ref:
         zip_ref.extractall(out_path)
 
-def remove_issue_id_from_commit(issue_id: str, commit: str):
-    return commit.replace(issue_id, "")
+def get_latest_data_file_index(prefix: str):
+    """
+    Returns the highest x value from files in the data directory that are named <prefix_000x>
+    """
+    pattern = re.compile(rf"{re.escape(prefix)}_(\d+)\..+")
+
+    max_idx = None
+
+    for file in Path(DATA_DIR).iterdir():
+        match = pattern.match(file.name)
+        if match:
+            idx = int(match.group(1))
+            max_idx = idx if max_idx is None else max(max_idx, idx)
+
+    return max_idx
+
+def get_latest_data_file(prefix: str):
+    idx = get_latest_data_file_index(prefix)
+    if idx is None:
+        raise FileNotFoundError()
+    return DATA_DIR / f"{prefix}_{idx:04d}.file"
+
+def get_next_data_file(prefix: str):
+    idx = get_latest_data_file_index(prefix)
+    if idx is None:
+        idx = -1
+    return DATA_DIR / f"{prefix}_{idx+1:04d}.file"
+
+def save_dict(data: dict, name: str):
+    data_path = get_next_data_file(name)
+    with open(data_path, "w") as f:
+        json.dump(data, f)
+
+def load_dict(name: str):
+    data_path = get_latest_data_file(name)
+    with open(data_path, "r") as f:
+        return json.load(f)
+
+def save_recalls_data(recalls: dict):
+    save_dict(recalls, RECALL_DATA_PREFIX)
+
+def save_precision_data(recalls: dict):
+    save_dict(recalls, PRECISION_DATA_PREFIX)
+
+def load_recall_data():
+    return load_dict(RECALL_DATA_PREFIX)
+
+def load_precision_data():
+    return load_dict(PRECISION_DATA_PREFIX)
 
 def plot(ax, x, label=""):
     ax.plot(range(len(x)), x, label=label)
@@ -41,6 +92,25 @@ def plot_retrievers(axis, retrievers:dict, title="", xlabel="", ylabel=""):
 def plot_projects(recalls: dict, precisions: dict):
     for project in recalls.keys():
         fig, axs = plt.subplots(6, 6, figsize=(18, 18))
+
+        for i, (project, _) in enumerate(recalls.items()):
+            row = i // 6
+            col = i % 6
+            plot_retrievers(axs[row][col], recalls[project], title=project, xlabel="K", ylabel="Recall")
+        plt.show()
+
+    for project in precisions.keys():
+        fig, axs = plt.subplots(6, 6, figsize=(18, 18))
+
+        for i, (project, _) in enumerate(precisions.items()):
+            row = i // 6
+            col = i % 6
+            plot_retrievers(axs[row][col], precisions[project], title=project, xlabel="K", ylabel="Precision")
+        plt.show()
+
+def plot_average_across_projects(recalls: dict, precisions: dict):
+    for project in recalls.keys():
+        fig, axs = plt.subplots(1, 2)
         plot_retrievers(axs[0], recalls[project], title=project, xlabel="K", ylabel="Recall")
         plot_retrievers(axs[1], precisions[project], title=project, xlabel="K", ylabel="Precision")
         plt.show()

@@ -172,7 +172,7 @@ if __name__ == "__main__":
     for project in seoss33:
         issues = project.get_issues()
 
-        print(f"Evaluating {len(RETRIEVER_NAMES)} retrieval techniques on {len(issues)} issues from {project.name}\n")
+        print(f"Project {project.name}: {len(issues)} trace links\n")
 
         retriever_recalls = {}
         retriever_precisions = {}
@@ -188,14 +188,12 @@ if __name__ == "__main__":
             mean_recall = sum(average_recalls.values())/len(average_recalls.values())
             retriever_recalls[name] = average_recalls
             retriever_precisions[name] = average_precisions
-            # plot(average_recalls)
         
         recalls_across_projects[project.name] = retriever_recalls
         precisions_across_projects[project.name] = retriever_precisions
-    plot_projects(recalls_across_projects, precisions_across_projects)
 
-    # get_ranked_issues()
-    # compute_precision_k()
+    save_recalls_data(recalls_across_projects)
+    save_precision_data(precisions_across_projects)
 
     for project in seoss33:
         project.close()
