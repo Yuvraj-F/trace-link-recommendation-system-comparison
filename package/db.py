@@ -94,15 +94,17 @@ class SEOSS33:
         issues = {}
         commits = {}
         links = {}
+        valids = 0
         for link in trace_links:
             issue = Issue(link.issue_id, link.summary, link.description)
             commit = Commit(link.commit_hash, link.message)
-
             issues[link.issue_id] = issue
             commits[link.commit_hash] = commit
-            linked_issues = links.setdefault(commit, set())
-            linked_issues.add(issue)
 
+            if utils.str_as_date(link.created_date) <= utils.str_as_date(link.committed_date):
+                links.setdefault(commit, set()).add(issue)
+                valids += 1
+        # print(f"Loaded {self.name}: {100*valids/len(trace_links):.2f}% links valid")
         return issues, commits, links
     
     def get_issues(self):

@@ -10,9 +10,6 @@ def get_candidate_issues_batched(get_relevant_issues, commits: list[Commit], top
     queries = [c.message for c in commits]
     results = get_relevant_issues(queries)
 
-    if topk is not None:
-        results = [r[:topk] for r in results]
-
     return results
 
 def compute_recall_precision_curves(pred_issues: list[Issue], true_issues: list[Issue]):
@@ -100,12 +97,13 @@ if __name__ == "__main__":
 
     recalls_across_projects = {}
     precisions_across_projects = {}
+    i=0
     for project_file in seoss33_files:
         db = SEOSS33(project_file)
         issues = db.get_issues()
 
         print("\n------------------------------------------------------")
-        print(f"Project {db.name}: {len(issues)} trace links")
+        print(f"{i}/{len(seoss33_files)} {db.name}: {len(issues)} trace links")
         print("------------------------------------------------------")
 
         retriever_recalls = {}
@@ -124,7 +122,7 @@ if __name__ == "__main__":
             retriever_precisions[name] = average_precisions
         
         db.close()
-        
+        i += 1
         recalls_across_projects[db.name] = retriever_recalls
         precisions_across_projects[db.name] = retriever_precisions
 

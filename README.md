@@ -2,18 +2,23 @@
 A package that can evaluate combinations of retireval and ranking techniques for issue-commit trace link recommendation
 
 # How to run
-- Some dependecies are only compatible with python 3.12. Please ensure you are using a compatible python version.
-- Refer to [dataset instructions](#seoss-33-dataset).
-- Execute `./run.bat` on Windows or `./run.sh` on Linux/MacOS. Alternatively, if you have a custom system-wide python environment that would be difficult to reinstall in the virtual environment refer to [Python Environment](#python-environment-and-dependencies).
+Some dependecies are only compatible with python 3.12. Please ensure you are using a compatible python version.
+- Refer to [dataset instructions](#seoss-33-dataset) to install and prepare the dataset.
+- Install dependencies using `pip install -r requirements.txt`.
+- Run the tests using `python package/main.py`. This runs tests across all 33 projects and saves recall and precision data into the data directory.
+- The data can be plotted by running `python package/plot_data.py`.
+
+It is possible to use the batch/bash scripts to autmatically install dependencies and run the tests but it has been unstable and might not behave as expected depending on your python environment.
+- You might need to change permissions for the run scripts to execute them
+- Execute `./run.bat` on Windows or `./run.sh` on Linux/MacOS. 
 
 # SEOSS 33 Dataset
 This package relies on the [SEOSS 33 dataset](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/PDDZ4Q).
-
 The simplest method is to place the Seoss33 dataset zip file at the root of the project and it will be automatically detected. 
+NOTE: Exactly one zip file should exist in the project directory otherwise it will not be detected.
 
 # `.env` (Optional)
-If there are 
-no zip files or more than one zip file then this detection fails and instead falls back to the `.env`. If the zip file is not at the root of 
+If there are no zip files or more than one zip file in the project directory then the dataset is not detected and instead falls back to the `.env`. If the zip file is not at the root of 
 the project, then the absolute path to the file can be supplied through the [`.env`](#.env).
 
 Create a `.env` file at the root of the project. The following example shows accepted parameters.

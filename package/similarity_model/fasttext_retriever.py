@@ -121,6 +121,6 @@ class FastTextRetriever(Retriever):
     
     def batch_encode_queries(self, queries):
         matrix = np.vstack(
-            [_mean_fasttext_vector(tokenize(text), self.kv, self.dim) for text in self.issue_texts]
+            [_mean_fasttext_vector(tokenize(text), self.kv, self.dim) for text in queries]
         )
         return matrix
